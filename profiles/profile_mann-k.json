@@ -3,10 +3,10 @@
   "n_sent_files": 8926,
   "n_used": 3000,
   "profile": {
-    "n_emails": 2463,
-    "average_message_length": 79.1,
+    "n_emails": 2405,
+    "average_message_length": 62.2,
     "greeting_patterns": {
-      "Hi": 0.123,
+      "Hi": 0.126,
       "Hey": 0.005,
       "Good morning": 0.003,
       "Hello": 0.002,
@@ -15,26 +15,26 @@
       "Greetings": 0.0
     },
     "punctuation_patterns": {
-      "ellipsis": 0.02,
-      "dashes": 0.027,
-      "exclaim": 0.046,
-      "question": 0.128,
-      "comma": 0.591,
-      "semicolon": 0.004
+      "ellipsis": 0.017,
+      "dashes": 0.019,
+      "exclaim": 0.043,
+      "question": 0.124,
+      "comma": 0.515,
+      "semicolon": 0.002
     },
-    "capitalization_ratio": 0.077,
-    "question_frequency": 0.879,
-    "vocabulary_richness": 0.81,
+    "capitalization_ratio": 0.067,
+    "question_frequency": 0.743,
+    "vocabulary_richness": 0.84,
     "common_phrases": [
-      "of the",
       "thanks kay",
+      "of the",
       "on the",
       "in the",
       "to the",
-      "for the",
       "i have",
+      "for the",
       "to be",
-      "if you",
+      "it is",
       "will be"
     ],
     "reasoning_patterns": [
@@ -42,18 +42,18 @@
       "because",
       "so that",
       "due to",
-      "in order to",
       "therefore",
-      "as a result",
+      "in order to",
       "thus",
+      "as a result",
       "hence"
     ],
     "sentiment_distribution": {
-      "pos": 0.41,
-      "neu": 0.5,
+      "pos": 0.4,
+      "neu": 0.51,
       "neg": 0.09
     },
-    "formality_level": 0.6,
-    "technical_terminology": 0.11
+    "formality_level": 0.58,
+    "technical_terminology": 0.1
   }
 }

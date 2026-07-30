@@ -114,6 +114,24 @@ _FWD_MARKERS = re.compile(
 )
 _HEADER_ECHO = re.compile(r"^\s*(To|From|Cc|Bcc|Sent|Subject|Date):\s", re.IGNORECASE)
 
+# Enron inline reply attributions — everything after these is the quoted original.
+_QUOTE_ATTR = re.compile(
+    r'(?:^\s*".+?"\s*<[^>]+>\s+on\s+\d{1,2}/\d{1,2}/\d{2,4})'  # "Name" <email> on 01/05/2001
+    r"|(?:^\s*<[^>]+@[^>]+>\s+on\s+\d{1,2}/\d{1,2}/\d{2,4})"  # <email> on date
+    r"|(?:^[A-Za-z][\w .,\'-]*@(?:ECT|ENRON|EES|ENRONXGATE|NA)\b)"  # Karen E Jones@ECT (routing tag)
+    r"|(?:^\s*Please respond to\b)"  # Please respond to <email>
+    r"|(?:\bon\s+\d{1,2}/\d{1,2}/\d{2,4}\s+\d{1,2}:\d{2}:\d{2}\s*[AP]M\b)",  # ... on 01/05/2001 10:42:47 AM
+    re.IGNORECASE,
+)
+
+# Enron routing / distribution headers (drop the line; not Kay's prose).
+_ENRON_HEADER = re.compile(
+    r"@(?:ect|ees|enronxgate|enron_development|enron)\b(?!\.)"  # internal routing tag (not @enron.com)
+    r"|/(?:hou|na|corp|lon)/(?:ect|enron|ees)\b"  # Name/HOU/ECT routing
+    r"|^\s*sent by:\b",
+    re.IGNORECASE,
+)
+
 
 def clean_email(raw: str) -> str:
     """Keep only what the author wrote: drop quoted replies, forwarded chains,
@@ -122,7 +140,9 @@ def clean_email(raw: str) -> str:
     kept = []
     for line in lines:
         stripped = line.strip()
-        if _FWD_MARKERS.match(line):  # forwarded / original-message chain: stop here
+        if _FWD_MARKERS.match(line) or _QUOTE_ATTR.search(
+            line
+        ):  # forwarded/quoted chain: stop here
             break
         if stripped in ("--", "-- "):  # signature delimiter: stop here
             break
@@ -131,6 +151,8 @@ def clean_email(raw: str) -> str:
         if re.match(r"^On .+wrote:$", stripped):
             continue
         if _HEADER_ECHO.match(line):  # echoed header line
+            continue
+        if _ENRON_HEADER.search(line):  # routing / distribution header line
             continue
         kept.append(line)
     text = "\n".join(kept)
