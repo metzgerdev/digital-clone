@@ -148,7 +148,9 @@ class StyleAgent:
             blocks.append(f"[{i}] {c['title']}{sec}\n{c['content']}")
         return "\n\n".join(blocks)
 
-    def build_messages(self, question: str, chunks: list[dict], n_exemplars: int = 5) -> list[dict]:
+    def build_messages(
+        self, question: str, chunks: list[dict], n_exemplars: int = 5, feedback: str = ""
+    ) -> list[dict]:
         system = (
             f"You are drafting an email reply as {self.name}. Write in {self.name}'s voice, "
             "matching the style guide below. Answer using ONLY the reference material, and cite "
@@ -164,6 +166,8 @@ class StyleAgent:
             f'Someone emailed this question:\n"{question}"\n\n'
             f"Write {self.name}'s reply."
         )
+        if feedback:
+            user += f"\n\nRevision notes — a previous draft fell short, fix these:\n{feedback}"
         return [{"role": "system", "content": system}, {"role": "user", "content": user}]
 
     # --- draft --------------------------------------------------------------- #
@@ -178,10 +182,11 @@ class StyleAgent:
         n_exemplars: int = 5,
         temperature: float = 0.7,
         max_tokens: int = 600,
+        feedback: str = "",
     ) -> dict:
         with trace("style.draft", model=model, k=k) as span:
             hits = kb.retrieve(question, k=k)
-            messages = self.build_messages(question, hits, n_exemplars)
+            messages = self.build_messages(question, hits, n_exemplars, feedback=feedback)
             with trace("llm.call", model=model):
                 resp = client.chat.completions.create(
                     model=model, messages=messages, temperature=temperature, max_tokens=max_tokens

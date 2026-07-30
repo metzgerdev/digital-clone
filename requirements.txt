@@ -10,3 +10,6 @@ faiss-cpu
 
 # Drafting + evaluation (OpenRouter / Claude)
 openai
+
+# Orchestration
+langgraph
