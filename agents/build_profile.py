@@ -13,6 +13,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))  # locate style_extractor
+from observability import trace
 from style_extractor import StyleProfile, parse_enron_message
 
 SENT_FOLDERS = ("_sent_mail", "sent", "sent_items")
@@ -71,8 +72,10 @@ def main():
     files = counts[target]
     print(f"\nSelected employee: {target}  ({len(files)} sent emails, using up to {MAX_EMAILS})")
 
-    bodies = load_bodies(files)
-    profile = StyleProfile().build(bodies)
+    with trace("build_profile", target=target, n_files=len(files)) as span:
+        bodies = load_bodies(files)
+        profile = StyleProfile().build(bodies)
+        span["outputs"]["n_used"] = min(len(files), MAX_EMAILS)
     print("\n" + json.dumps(profile, indent=2))
 
     os.makedirs(PROFILES, exist_ok=True)

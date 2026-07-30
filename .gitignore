@@ -11,6 +11,9 @@ venv/
 knowledge/index_*/
 profiles/*_emails.jsonl
 
+# runtime logs
+logs/
+
 # os
 .DS_Store
 PLAN.md

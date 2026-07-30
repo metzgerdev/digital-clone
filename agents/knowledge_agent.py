@@ -23,6 +23,11 @@ if str(RAG) not in sys.path:
     sys.path.insert(0, str(RAG))
 from rag_utils.dense_retriever import DenseRetriever  # noqa: E402
 
+try:
+    from .observability import trace
+except ImportError:  # run as a script (agents/ on path)
+    from observability import trace
+
 DATASET = "open-phi/textbooks"
 TOPIC_FILTER = re.compile(r"cognitive", re.I)  # -> the 4 cognitive-science books
 INDEX_DIR = Path(__file__).resolve().parent.parent / "knowledge" / "index_cogsci_bge-large"
@@ -107,35 +112,42 @@ class KnowledgeAgent:
         self.retriever: DenseRetriever | None = None
 
     def build(self, rebuild: bool = False) -> "KnowledgeAgent":
-        if self.index_dir.exists() and not rebuild:
-            self.retriever = DenseRetriever.load(self.index_dir)
-        else:
-            chunks = build_chunks()
-            print(f"Building index over {len(chunks)} chunks...")
-            self.retriever = DenseRetriever(size=self.size).index(chunks)
-            self.retriever.save(self.index_dir)
+        with trace("kb.build", size=self.size, rebuild=rebuild) as span:
+            if self.index_dir.exists() and not rebuild:
+                self.retriever = DenseRetriever.load(self.index_dir)
+                span["outputs"]["source"] = "cache"
+            else:
+                chunks = build_chunks()
+                print(f"Building index over {len(chunks)} chunks...")
+                self.retriever = DenseRetriever(size=self.size).index(chunks)
+                self.retriever.save(self.index_dir)
+                span["outputs"].update(source="built", chunks=len(chunks))
+            span["outputs"]["vectors"] = len(self.retriever.chunks)
         return self
 
     def retrieve(self, query: str, k: int = 5) -> list[dict]:
         if self.retriever is None:
             self.build()
-        scores, idx = self.retriever.retrieve(query, k=k)
-        hits = []
-        for s, i in zip(scores, idx):
-            if i < 0:
-                continue
-            c = self.retriever.chunks[i]
-            section = c.get("section", "")
-            hits.append(
-                {
-                    "score": float(s),
-                    "content": c["content"],
-                    "paper_id": c["paper_id"],
-                    "title": c["title"],
-                    "section": section,
-                    "citation": f"{c['title']}" + (f" · {section}" if section else ""),
-                }
-            )
+        with trace("kb.retrieve", k=k, query=query[:80]) as span:
+            scores, idx = self.retriever.retrieve(query, k=k)
+            hits = []
+            for s, i in zip(scores, idx):
+                if i < 0:
+                    continue
+                c = self.retriever.chunks[i]
+                section = c.get("section", "")
+                hits.append(
+                    {
+                        "score": float(s),
+                        "content": c["content"],
+                        "paper_id": c["paper_id"],
+                        "title": c["title"],
+                        "section": section,
+                        "citation": f"{c['title']}" + (f" · {section}" if section else ""),
+                    }
+                )
+            span["outputs"]["hits"] = len(hits)
+            span["outputs"]["top_score"] = round(hits[0]["score"], 3) if hits else None
         return hits
 
 
