@@ -8,4 +8,5 @@ sentence-transformers
 torch
 faiss-cpu
 
-# Phase 2 (drafting) will add an OpenRouter client
+# Drafting + evaluation (OpenRouter / Claude)
+openai
