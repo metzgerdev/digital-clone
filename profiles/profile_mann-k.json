@@ -1,0 +1,59 @@
+{
+  "employee": "mann-k",
+  "n_sent_files": 8926,
+  "n_used": 3000,
+  "profile": {
+    "n_emails": 2463,
+    "average_message_length": 79.1,
+    "greeting_patterns": {
+      "Hi": 0.123,
+      "Hey": 0.005,
+      "Good morning": 0.003,
+      "Hello": 0.002,
+      "Good afternoon": 0.001,
+      "Dear": 0.001,
+      "Greetings": 0.0
+    },
+    "punctuation_patterns": {
+      "ellipsis": 0.02,
+      "dashes": 0.027,
+      "exclaim": 0.046,
+      "question": 0.128,
+      "comma": 0.591,
+      "semicolon": 0.004
+    },
+    "capitalization_ratio": 0.077,
+    "question_frequency": 0.879,
+    "vocabulary_richness": 0.81,
+    "common_phrases": [
+      "of the",
+      "thanks kay",
+      "on the",
+      "in the",
+      "to the",
+      "for the",
+      "i have",
+      "to be",
+      "if you",
+      "will be"
+    ],
+    "reasoning_patterns": [
+      "since",
+      "because",
+      "so that",
+      "due to",
+      "in order to",
+      "therefore",
+      "as a result",
+      "thus",
+      "hence"
+    ],
+    "sentiment_distribution": {
+      "pos": 0.41,
+      "neu": 0.5,
+      "neg": 0.09
+    },
+    "formality_level": 0.6,
+    "technical_terminology": 0.11
+  }
+}

@@ -1,0 +1,11 @@
+# Style agent
+numpy
+nltk
+
+# Knowledge agent (retrieval)
+datasets
+sentence-transformers
+torch
+faiss-cpu
+
+# Phase 2 (drafting) will add an OpenRouter client

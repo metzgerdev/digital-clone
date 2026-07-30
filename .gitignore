@@ -1,0 +1,17 @@
+# secrets
+.env
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# generated artifacts (rebuilt from the scripts)
+knowledge/index_*/
+profiles/*_emails.jsonl
+
+# os
+.DS_Store
+PLAN.md
+project.md
