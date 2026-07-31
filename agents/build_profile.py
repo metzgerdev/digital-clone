@@ -48,7 +48,7 @@ def load_bodies(files):
     bodies = []
     for fp in files[:MAX_EMAILS]:
         try:
-            with open(fp, "r", encoding="latin-1") as fh:
+            with open(fp, encoding="latin-1") as fh:
                 bodies.append(parse_enron_message(fh.read()))
         except Exception:
             continue

@@ -1,0 +1,11 @@
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["scratch", "logs"]
+
+[tool.ruff.lint]
+# pycodestyle (E/W), pyflakes (F), isort (I), pyupgrade (UP), bugbear (B)
+select = ["E", "F", "W", "I", "UP", "B"]
+# E501 (line length) is left to `ruff format`; the remaining long lines are
+# regex patterns and word-list data that shouldn't be wrapped.
+ignore = ["E501"]

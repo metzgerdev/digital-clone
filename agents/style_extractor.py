@@ -41,7 +41,7 @@ def _ensure_nltk():
 
 _ensure_nltk()
 
-from nltk import pos_tag, sent_tokenize, word_tokenize
+from nltk import pos_tag, sent_tokenize, word_tokenize  # noqa: E402
 
 try:
     from nltk.corpus import stopwords
@@ -248,7 +248,10 @@ def f_pos_distribution(words_cased):
     except Exception:
         return empty
     n = len(tags)
-    frac = lambda pre: sum(t.startswith(pre) for t in tags) / n
+
+    def frac(pre):
+        return sum(t.startswith(pre) for t in tags) / n
+
     return {
         "pos_noun": frac(("NN",)),
         "pos_verb": frac(("VB",)),
@@ -360,7 +363,10 @@ def formality_score(words_cased):
     except Exception:
         return 0.0
     n = len(tags)
-    pct = lambda pre: 100.0 * sum(t.startswith(pre) for t in tags) / n
+
+    def pct(pre):
+        return 100.0 * sum(t.startswith(pre) for t in tags) / n
+
     f = (
         pct(("NN",))
         + pct(("JJ",))
@@ -477,7 +483,9 @@ class StyleProfile:
             for g in set(content_ngrams(words)):  # doc-frequency
                 phrases[g] += 1
 
-        avg = lambda k: round(float(np.mean([m[k] for m in per_msg])), 3)
+        def avg(k):
+            return round(float(np.mean([m[k] for m in per_msg])), 3)
+
         total_sent = sum(sentiment.values()) or 1
         min_df = max(2, n_emails // 20)  # scale phrase threshold with corpus size
         common = [p for p, c in phrases.most_common() if c >= min_df][:10]

@@ -111,7 +111,7 @@ class KnowledgeAgent:
         self.index_dir = Path(index_dir)
         self.retriever: DenseRetriever | None = None
 
-    def build(self, rebuild: bool = False) -> "KnowledgeAgent":
+    def build(self, rebuild: bool = False) -> KnowledgeAgent:
         with trace("kb.build", size=self.size, rebuild=rebuild) as span:
             if self.index_dir.exists() and not rebuild:
                 self.retriever = DenseRetriever.load(self.index_dir)
@@ -131,7 +131,7 @@ class KnowledgeAgent:
         with trace("kb.retrieve", k=k, query=query[:80]) as span:
             scores, idx = self.retriever.retrieve(query, k=k)
             hits = []
-            for s, i in zip(scores, idx):
+            for s, i in zip(scores, idx, strict=False):
                 if i < 0:
                     continue
                 c = self.retriever.chunks[i]

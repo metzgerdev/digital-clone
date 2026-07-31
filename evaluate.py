@@ -70,7 +70,9 @@ def main():
     fell = [r for r in rows if r["decision"] == "fallback"]
     reflected = [r for r in rows if r["attempts"] > 1]
     correct = [r for r in rows if r["correct"]]
-    mean = lambda key, rs: round(sum(r[key] for r in rs) / len(rs), 3) if rs else 0.0
+
+    def mean(key, rs):
+        return round(sum(r[key] for r in rs) / len(rs), 3) if rs else 0.0
 
     print("\n" + "=" * 40 + " summary " + "=" * 35)
     print(f"  questions              : {n}")
