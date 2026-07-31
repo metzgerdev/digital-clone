@@ -21,6 +21,8 @@ import sys
 from pathlib import Path
 
 import numpy as np
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from style_extractor import StyleExtractor  # noqa: E402
@@ -78,24 +80,38 @@ class StyleAgent:
         self.extractor = StyleExtractor()
         self._fit_style_space()
 
-    # --- style space: vectors, standardisation, typicality ----------------- #
+    # --- style space: StandardScaler -> PCA -> distance to the author's mean - #
     def _fit_style_space(self):
         feats = [self.extractor.extract(e["body"]) for e in self.emails]
         self._keys = sorted({k for f in feats for k in f})
-        self._X = np.array([[f.get(k, 0.0) for k in self._keys] for f in feats], float)
-        self._mu = self._X.mean(axis=0)
-        self._sd = self._X.std(axis=0) + 1e-9
-        z = np.abs((self._X - self._mu) / self._sd)
-        self._typicality = z.mean(axis=1)  # smaller = more typical
-        self._order = np.argsort(self._typicality)  # most representative first
+        X = np.array([[f.get(k, 0.0) for k in self._keys] for f in feats], float)
+
+        # 1) StandardScaler: mean 0, unit variance per feature.
+        self._scaler = StandardScaler().fit(X)
+        Z = self._scaler.transform(X)
+        # 2) PCA, whitened, keeping ~95% variance: decorrelate + drop noise, so
+        #    Euclidean distance in this space is Mahalanobis-style (correlation-aware).
+        n = min(Z.shape[0], Z.shape[1])
+        self._pca = PCA(n_components=min(0.95, (n - 1) / n), whiten=True, svd_solver="full").fit(Z)
+        P = self._pca.transform(Z)
+
+        # 3) distance of each email to the author's mean (the origin after PCA).
+        self._train_dist = np.sort(np.linalg.norm(P, axis=1))
+        self._order = np.argsort(np.linalg.norm(P, axis=1))  # most typical first
 
     def _vec(self, feats: dict) -> np.ndarray:
         return np.array([feats.get(k, 0.0) for k in self._keys], float)
 
+    def _distance(self, text: str) -> float:
+        x = self._vec(self.extractor.extract(text)).reshape(1, -1)
+        return float(np.linalg.norm(self._pca.transform(self._scaler.transform(x))))
+
     def style_score(self, text: str) -> float:
-        """0..1 — how typical `text` is of the author's style (1 = perfectly typical)."""
-        z = np.abs((self._vec(self.extractor.extract(text)) - self._mu) / self._sd)
-        return round(1.0 / (1.0 + float(z.mean())), 3)
+        """0..1 — calibrated against the author's own emails: the fraction of her
+        real emails at least as far from her mean as `text` (1 = more typical than
+        all of them, 0.5 = as typical as her median email)."""
+        d = self._distance(text)
+        return round(float((self._train_dist >= d).mean()), 3)
 
     def exemplars(self, n: int = 5, min_words: int = 30, max_words: int = 160) -> list[str]:
         """The author's most representative emails within a sane length range."""
